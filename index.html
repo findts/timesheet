@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tita's Timesheet</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Inter',sans-serif; background:#f5f4f0; color:#1a1a1a; min-height:100vh; padding:1.25rem 0.75rem 3rem; }
+  .container { max-width:480px; margin:0 auto; }
+  h1 { font-family:'DM Serif Display',serif; font-size:1.5rem; font-weight:400; margin-bottom:0.15rem; }
+  .subtitle { color:#888; font-size:0.8rem; margin-bottom:1rem; }
+  .card { background:#fff; border:1px solid #e0ddd8; border-radius:10px; padding:0.9rem 1rem; margin-bottom:0.75rem; }
+  .section-label { font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:#999; margin-bottom:0.6rem; }
+  .hint { font-size:0.72rem; color:#aaa; line-height:1.4; }
+  .period-row { display:flex; gap:0.5rem; align-items:center; }
+  .period-row .nav { padding:0.45rem 0.7rem; border:1px solid #ddd; background:#fff; border-radius:8px; font-size:1rem; font-family:'Inter',sans-serif; cursor:pointer; }
+  .period-row .nav:active { background:#f0faf4; }
+  .period-label { flex:1; text-align:center; font-size:0.95rem; font-weight:600; color:#2a7a50; }
+  .period-sub { text-align:center; font-size:0.7rem; color:#aaa; margin-top:0.25rem; }
+
+  .day { display:grid; grid-template-columns: 46px 1fr; gap:0.4rem 0.5rem; align-items:center; padding:0.45rem 0; border-top:1px solid #f0eeea; }
+  .day:first-child { border-top:none; }
+  .day.off { opacity:0.55; }
+  .day-label { font-size:0.8rem; color:#555; font-weight:600; line-height:1.15; }
+  .day-label small { display:block; color:#aaa; font-weight:400; font-size:0.65rem; }
+  .controls { display:grid; grid-template-columns: minmax(0,1fr) minmax(0,1.2fr) minmax(0,1.2fr) minmax(0,.6fr); gap:0.25rem; align-items:center; }
+  .controls select, .controls input { width:100%; min-width:0; padding:0.45rem 0.15rem; font-size:0.78rem; border:1px solid #e0ddd8; border-radius:6px; background:#fafaf8; font-family:'Inter',sans-serif; text-align:center; outline:none; -webkit-appearance:none; }
+  .controls input:focus, .controls select:focus { border-color:#7ec8a0; background:#fff; }
+  .controls input:disabled { background:#f3f2ee; color:#bbb; }
+  .controls input[type=time]::-webkit-calendar-picker-indicator { display:none; }
+  .controls input[type=time] { padding-left:0; padding-right:0; }
+  .controls .lbl { font-size:0.6rem; color:#aaa; text-align:center; text-transform:uppercase; letter-spacing:.04em; }
+  .col-heads { display:grid; grid-template-columns: 46px 1fr; gap:0.5rem; margin-bottom:0.2rem; }
+  .col-heads .controls span { font-size:0.6rem; color:#aaa; text-align:center; text-transform:uppercase; letter-spacing:.04em; font-weight:600; }
+  .day.weekend { background:#fdfaf4; margin:0 -1rem; padding-left:1rem; padding-right:1rem; }
+
+  .field label { display:block; font-size:0.76rem; color:#555; margin-bottom:3px; }
+  .field input { width:100%; padding:0.55rem 0.6rem; font-size:1rem; border:1px solid #ddd; border-radius:6px; background:#fafaf8; outline:none; font-family:'Inter',sans-serif; }
+  .field input:focus { border-color:#7ec8a0; }
+
+  .btn-send { width:100%; margin-top:0.5rem; padding:0.95rem; background:#1a1a1a; color:#fff; border:none; border-radius:10px; font-size:1rem; font-family:'Inter',sans-serif; font-weight:600; cursor:pointer; }
+  .btn-send:active { background:#555; }
+  .btn-action { flex:1; padding:0.75rem; border-radius:8px; font-size:0.85rem; font-family:'Inter',sans-serif; font-weight:600; cursor:pointer; border:none; text-align:center; }
+  .btn-copy { background:#1a1a1a; color:#fff; }
+  .btn-copy.copied { background:#7ec8a0; }
+  .btn-text { background:#f0faf4; color:#2a7a50; border:1px solid #c0e8d0; }
+  .btn-small { padding:0.5rem 0.8rem; border-radius:6px; font-size:0.8rem; font-family:'Inter',sans-serif; font-weight:600; cursor:pointer; border:1px solid #ddd; background:#f8f7f4; color:#555; }
+  .result-box { margin-top:1rem; background:#fff; border:2px solid #7ec8a0; border-radius:10px; padding:1.1rem; }
+  .result-box .section-label { color:#7ec8a0; }
+  .result-actions { display:flex; gap:0.5rem; margin-bottom:0.75rem; }
+  .result-preview { background:#fafaf8; border:1px solid #eee; border-radius:8px; padding:0.8rem; font-family:monospace; font-size:0.74rem; line-height:1.5; white-space:pre-wrap; color:#555; max-height:260px; overflow-y:auto; user-select:all; }
+  textarea { width:100%; padding:0.6rem; font-size:0.8rem; font-family:monospace; border:1px solid #ddd; border-radius:6px; background:#fafaf8; outline:none; resize:vertical; }
+  details summary { font-size:0.8rem; color:#777; cursor:pointer; font-weight:600; }
+  .status { font-size:0.75rem; margin-top:0.4rem; min-height:1rem; }
+  .ok { color:#2a7a50; font-weight:600; } .err { color:#c45a5a; font-weight:600; }
+  .saved { font-size:0.68rem; color:#aaa; text-align:right; margin-top:-0.4rem; margin-bottom:0.6rem; }
+  .hidden { display:none; }
+</style>
+</head>
+<body>
+<div class="container">
+  <h1>Timesheet</h1>
+  <p class="subtitle">Fill in each day as you go, then tap Send on Friday.</p>
+
+  <!-- Period -->
+  <div class="card">
+    <div class="period-row">
+      <button class="nav" onclick="shiftPeriod(-1)" aria-label="Previous period">◀</button>
+      <div class="period-label" id="periodLabel"></div>
+      <button class="nav" onclick="shiftPeriod(1)" aria-label="Next period">▶</button>
+    </div>
+    <div class="period-sub" id="periodSub"></div>
+  </div>
+  <p class="saved" id="savedNote"></p>
+
+  <!-- Days -->
+  <div class="card">
+    <div class="section-label">Week 1</div>
+    <div class="col-heads"><span></span><div class="controls"><span>Day type</span><span>Start</span><span>End</span><span>Hrs w/ Mary</span></div></div>
+    <div id="week1"></div>
+  </div>
+  <div class="card">
+    <div class="section-label">Week 2</div>
+    <div class="col-heads"><span></span><div class="controls"><span>Day type</span><span>Start</span><span>End</span><span>Hrs w/ Mary</span></div></div>
+    <div id="week2"></div>
+  </div>
+  <p class="hint" style="margin:-.25rem 0 .75rem .25rem">If you were sent home early, leave the usual 09:00–17:00. "Hrs w/ Mary" can be 4+2. Weekends are off unless you worked.</p>
+
+  <!-- Bus pass -->
+  <div class="card">
+    <div class="field">
+      <label>Bus pass reimbursement this period (leave blank if none)</label>
+      <input type="text" inputmode="decimal" id="busPass" placeholder="0.00" oninput="onBusPass()">
+    </div>
+    <p class="hint" style="margin-top:.4rem">Send Toby a photo of the receipt separately.</p>
+  </div>
+
+  <button class="btn-send" id="btnSend" onclick="generateMessage()">Send hours to Toby</button>
+
+  <!-- Result -->
+  <div class="result-box hidden" id="resultBox">
+    <div class="section-label" id="resultTitle">Copied! Send this to Toby</div>
+    <div class="result-actions">
+      <button class="btn-action btn-copy" id="btnCopy" onclick="copyMessage()">Copy again</button>
+      <button class="btn-action btn-text" onclick="sendText()">Send as text</button>
+    </div>
+    <div class="result-preview" id="resultPreview"></div>
+  </div>
+
+  <!-- Resume from text (fallback when the page forgets) -->
+  <div class="card" style="margin-top:1rem">
+    <details>
+      <summary>Page forgot your days? Restore from a sent message</summary>
+      <p class="hint" style="margin:.5rem 0">Copy your last "Timesheet" message from Messages and paste it here. Your days come back and you can carry on.</p>
+      <textarea id="resumeBox" rows="4" placeholder="Timesheet PP end 2026-09-18&#10;Sat Sep 5: off&#10;..."></textarea>
+      <div style="display:flex;gap:.5rem;align-items:center;margin-top:.5rem">
+        <button class="btn-small" onclick="resumeFromText()">Restore</button>
+        <span class="status" id="resumeStatus"></span>
+      </div>
+    </details>
+  </div>
+</div>
+
+<script>
+// Facts only. This page never sees pay figures.
+const ANCHOR_END = '2026-09-04';   // a known period end (Friday); every period ends 14 days apart
+const PERIOD_DAYS = 14;
+const DEFAULT_START = '09:00', DEFAULT_END = '17:00';
+const TOBY_SMS = '';               // Toby's mobile number, e.g. '+16045551234' — blank = phone asks who to send to
+const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+const TYPES = [['worked','Worked'],['off','Off'],['sick','Sick'],['vacation','Vacation'],['stat','Stat holiday']];
+
+let days = [];        // 14 × {date, type, start, end, mary}
+let busPass = '';
+let restoring = false;
+
+const pad = n => String(n).padStart(2,'0');
+const iso = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+const parseISO = s => new Date(s+'T00:00:00');
+const addDays = (d,n) => { const x=new Date(d); x.setDate(x.getDate()+n); return x; };
+const LS = (k,v) => { try{ if(v===undefined) return localStorage.getItem(k); if(v===null) localStorage.removeItem(k); else localStorage.setItem(k,v); }catch(e){ return null; } };
+function evalExpr(s){ if(!s||!String(s).trim()) return 0; const c=String(s).replace(/[^0-9.+\-]/g,''); if(!c) return 0;
+  const p=c.split(/(?=[+-])|(?<=[+-])/).filter(Boolean); let t=0,op='+';
+  for(const x of p){ if(x==='+'||x==='-'){op=x;} else { const n=parseFloat(x); if(!isNaN(n)) t = op==='+'?t+n:t-n; } } return t; }
+const H = x => String(Math.round(x*100)/100);
+
+// ----- Period: the one containing today (first period end on the cycle that is >= today) -----
+function daysFromAnchor(d){ return Math.round((d - parseISO(ANCHOR_END)) / 86400000); }
+function periodContaining(d){ const k=Math.ceil(daysFromAnchor(d)/PERIOD_DAYS); return iso(addDays(parseISO(ANCHOR_END), k*PERIOD_DAYS)); }
+function onGrid(s){ const d=parseISO(s); return !isNaN(d) && ((daysFromAnchor(d)%PERIOD_DAYS)+PERIOD_DAYS)%PERIOD_DAYS===0; }
+let currentEnd = '';
+function ppEnd(){ return currentEnd; }
+function stateKey(){ return 'ts_state_'+currentEnd; }
+function setPeriod(endISO){
+  if(!onGrid(endISO)) return;
+  currentEnd = endISO;
+  const e=parseISO(endISO), s=addDays(e,-13);
+  document.getElementById('periodLabel').textContent = `${MON[s.getMonth()]} ${s.getDate()} – ${MON[e.getMonth()]} ${e.getDate()}, ${e.getFullYear()}`;
+  const t=new Date(); t.setHours(0,0,0,0);
+  document.getElementById('periodSub').textContent = periodContaining(t)===endISO ? 'Current pay period' : (endISO<iso(t) ? 'Past period' : 'Future period');
+  hideResult();
+  loadState();
+}
+function shiftPeriod(n){ setPeriod(iso(addDays(parseISO(currentEnd), n*PERIOD_DAYS))); }
+
+// ----- Days -----
+function defaultDays(endISO){
+  const end=parseISO(endISO), out=[];
+  for(let i=13;i>=0;i--){ const d=addDays(end,-i); const wk=d.getDay()===0||d.getDay()===6;
+    out.push({ date:iso(d), type: wk?'off':'worked', start: wk?'':DEFAULT_START, end: wk?'':DEFAULT_END, mary:'' }); }
+  return out;
+}
+function render(){
+  [1,2].forEach(w=>{
+    const c=document.getElementById('week'+w); c.innerHTML='';
+    days.slice((w-1)*7, w*7).forEach((d,j)=>{ const i=(w-1)*7+j; const dt=parseISO(d.date); const off=d.type!=='worked'; const wk=dt.getDay()===0||dt.getDay()===6;
+      c.insertAdjacentHTML('beforeend', `
+        <div class="day ${off?'off':''} ${wk?'weekend':''}">
+          <div class="day-label">${DOW[dt.getDay()]}<small>${MON[dt.getMonth()]} ${dt.getDate()}</small></div>
+          <div class="controls">
+            <select onchange="setDay(${i},'type',this.value)">${TYPES.map(([v,l])=>`<option value="${v}" ${d.type===v?'selected':''}>${l}</option>`).join('')}</select>
+            <input type="time" value="${d.start}" ${off?'disabled':''} onchange="setDay(${i},'start',this.value)">
+            <input type="time" value="${d.end}" ${off?'disabled':''} onchange="setDay(${i},'end',this.value)">
+            <input type="text" inputmode="decimal" value="${d.mary}" placeholder="0" ${off?'disabled':''} oninput="setDay(${i},'mary',this.value)">
+          </div>
+        </div>`);
+    });
+  });
+  document.getElementById('busPass').value = busPass;
+}
+function setDay(i,f,v){
+  const d=days[i]; d[f]=v;
+  if(f==='type'){ if(v==='worked'){ if(!d.start) d.start=DEFAULT_START; if(!d.end) d.end=DEFAULT_END; } else { d.mary=''; } render(); }
+  hideResult(); saveState();
+}
+function onBusPass(){ busPass=document.getElementById('busPass').value; hideResult(); saveState(); }
+
+// ----- Persistence (per period) -----
+function saveState(){
+  if(restoring) return;
+  const ok = LS(stateKey(), JSON.stringify({ days, busPass, savedAt:new Date().toISOString() }));
+  document.getElementById('savedNote').textContent = ok===null ? 'This browser can\'t save — use "Restore from a sent message" if the page forgets.' : 'Saved on this phone';
+}
+function loadState(){
+  restoring=true;
+  let s=null; try{ s=JSON.parse(LS(stateKey())||'null'); }catch(e){}
+  if(s && Array.isArray(s.days) && s.days.length===14 && s.days[13].date===currentEnd){ days=s.days; busPass=s.busPass||''; }
+  else { days=defaultDays(currentEnd); busPass=''; }
+  restoring=false;
+  render();
+}
+
+// ----- Message -----
+function dayLine(d){
+  const dt=parseISO(d.date); const lbl=`${DOW[dt.getDay()]} ${MON[dt.getMonth()]} ${dt.getDate()}`;
+  if(d.type==='worked'){ const m=evalExpr(d.mary); return `${lbl}: ${d.start||DEFAULT_START}-${d.end||DEFAULT_END}${m>0?`, Mary ${H(m)}`:''}`; }
+  return `${lbl}: ${d.type}`;
+}
+function buildMessage(){
+  const L=[`Timesheet PP end ${currentEnd}`, ...days.map(dayLine)];
+  const b=parseFloat(busPass); if(b>0) L.push(`Bus pass: ${b.toFixed(2)}`);
+  return L.join('\n');
+}
+function fullMessage(){ return `Hi Toby, here are my hours:\n\n`+buildMessage(); }
+function hideResult(){ document.getElementById('resultBox').classList.add('hidden'); document.getElementById('btnSend').classList.remove('hidden'); }
+function showResult(msg, title){
+  document.getElementById('resultTitle').textContent=title;
+  document.getElementById('resultPreview').textContent=msg;
+  document.getElementById('resultBox').classList.remove('hidden');
+  document.getElementById('btnSend').classList.add('hidden');
+  document.getElementById('resultBox').scrollIntoView({behavior:'smooth'});
+}
+function generateMessage(){
+  const worked=days.filter(d=>d.type==='worked').length;
+  if(worked===0 && !confirm('No days are marked as worked. Send anyway?')) return;
+  const msg=fullMessage(); window._message=msg;
+  const clip = (navigator.clipboard && navigator.clipboard.writeText) ? navigator.clipboard.writeText(msg) : Promise.reject();
+  clip.then(()=>showResult(msg,'Copied! Send this to Toby')).catch(()=>showResult(msg,'Copy the text below and send it to Toby'));
+}
+function copyMessage(){
+  navigator.clipboard.writeText(window._message).then(()=>{ const b=document.getElementById('btnCopy'); b.textContent='Copied!'; b.classList.add('copied'); setTimeout(()=>{ b.textContent='Copy again'; b.classList.remove('copied'); },2000); });
+}
+function sendText(){ window.open(`sms:${TOBY_SMS}${TOBY_SMS?'&':'?'}body=${encodeURIComponent(window._message||fullMessage())}`); }
+
+// ----- Resume from text (fallback when localStorage isn't available) -----
+function resumeFromText(){
+  const text=document.getElementById('resumeBox').value, st=document.getElementById('resumeStatus');
+  const head=text.match(/PP end\s+(\d{4}-\d{2}-\d{2})/i);
+  if(!head || !onGrid(head[1])){ st.innerHTML='<span class="err">Couldn\'t find "Timesheet PP end …" with a valid date in that text.</span>'; return; }
+  const lines=text.split('\n').map(l=>l.trim()).filter(l=>/^(Sun|Mon|Tue|Wed|Thu|Fri|Sat)\s/i.test(l));
+  if(lines.length!==14){ st.innerHTML=`<span class="err">Expected 14 day lines, found ${lines.length}.</span>`; return; }
+  const nd=defaultDays(head[1]);
+  lines.forEach((l,i)=>{
+    const m=l.match(/:\s*(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})(?:,\s*Mary\s*([\d.+]+))?/i);
+    if(m){ nd[i].type='worked'; nd[i].start=m[1].padStart(5,'0'); nd[i].end=m[2].padStart(5,'0'); nd[i].mary=m[3]||''; }
+    else { const t=l.match(/:\s*(off|sick|vacation|stat|holiday|unpaid)/i);
+      nd[i].type = t ? (t[1].toLowerCase()==='holiday'?'stat':t[1].toLowerCase()==='unpaid'?'off':t[1].toLowerCase()) : 'off';
+      nd[i].start=''; nd[i].end=''; nd[i].mary=''; }
+  });
+  const bus=text.match(/bus\s*pass[^\d\n]*([\d,]+(?:\.\d{1,2})?)/i);
+  currentEnd=head[1]; days=nd; busPass = bus ? parseFloat(bus[1].replace(/,/g,'')).toFixed(2) : '';
+  saveState();
+  setPeriodLabelOnly(); render();
+  document.getElementById('resumeBox').value='';
+  st.innerHTML=`<span class="ok">Restored ${lines.length} days for the period ending ${head[1]}.</span>`;
+}
+function setPeriodLabelOnly(){ const e=parseISO(currentEnd), s=addDays(e,-13);
+  document.getElementById('periodLabel').textContent = `${MON[s.getMonth()]} ${s.getDate()} – ${MON[e.getMonth()]} ${e.getDate()}, ${e.getFullYear()}`;
+  const t=new Date(); t.setHours(0,0,0,0);
+  document.getElementById('periodSub').textContent = periodContaining(t)===currentEnd ? 'Current pay period' : (currentEnd<iso(t) ? 'Past period' : 'Future period'); }
+
+// ----- Init -----
+(function(){ const t=new Date(); t.setHours(0,0,0,0); setPeriod(periodContaining(t)); })();
+</script>
+</body>
+</html>
