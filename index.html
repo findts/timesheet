@@ -128,7 +128,7 @@
 const ANCHOR_END = '2026-09-04';   // a known period end (Friday); every period ends 14 days apart
 const PERIOD_DAYS = 14;
 const DEFAULT_START = '09:00', DEFAULT_END = '17:00';
-const TOBY_SMS = '';               // Toby's mobile number, e.g. '+16045551234' — blank = phone asks who to send to
+const TOBY_SMS = '';               // deliberately blank: this page is public, so no number goes in it. The phone asks who to send to.
 const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const TYPES = [['worked','Worked'],['off','Off'],['sick','Sick'],['vacation','Vacation'],['stat','Stat holiday']];
@@ -243,7 +243,9 @@ function generateMessage(){
 function copyMessage(){
   navigator.clipboard.writeText(window._message).then(()=>{ const b=document.getElementById('btnCopy'); b.textContent='Copied!'; b.classList.add('copied'); setTimeout(()=>{ b.textContent='Copy again'; b.classList.remove('copied'); },2000); });
 }
-function sendText(){ window.open(`sms:${TOBY_SMS}${TOBY_SMS?'&':'?'}body=${encodeURIComponent(window._message||fullMessage())}`); }
+function sendText(){ // iOS wants sms:<n>&body=, Android sms:<n>?body=
+  const sep = /iPhone|iPad|iPod|Macintosh/i.test(navigator.userAgent) ? '&' : '?';
+  window.open(`sms:${TOBY_SMS}${sep}body=${encodeURIComponent(window._message||fullMessage())}`); }
 
 // ----- Resume from text (fallback when localStorage isn't available) -----
 function resumeFromText(){
