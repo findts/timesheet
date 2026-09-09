@@ -35,6 +35,15 @@
   .col-heads { display:grid; grid-template-columns: 46px 1fr; gap:0.5rem; margin-bottom:0.2rem; }
   .col-heads .controls span { font-size:0.6rem; color:#aaa; text-align:center; text-transform:uppercase; letter-spacing:.04em; font-weight:600; }
   .day.weekend { background:#fdfaf4; margin:0 -1rem; padding-left:1rem; padding-right:1rem; }
+  .day-flag { grid-column:2 / -1; font-size:0.64rem; color:#b8823a; font-weight:600; margin-top:1px; }
+
+  .week-total { display:flex; justify-content:space-between; align-items:baseline; gap:0.5rem;
+                border-top:1px solid #eee; margin-top:0.6rem; padding-top:0.55rem; font-size:0.8rem; color:#555; }
+  .week-total b { font-weight:700; }
+  .week-total .flag { color:#b8823a; font-weight:600; font-size:0.72rem; text-align:right; }
+  .period-total { background:#fff; border:1px solid #e0ddd8; border-radius:10px; padding:0.75rem 1rem;
+                  margin-bottom:0.75rem; display:flex; justify-content:space-between; align-items:baseline; font-size:0.85rem; color:#555; }
+  .period-total .big { font-family:'DM Serif Display',serif; font-size:1.25rem; color:#1a1a1a; }
 
   .field label { display:block; font-size:0.76rem; color:#555; margin-bottom:3px; }
   .field input { width:100%; padding:0.55rem 0.6rem; font-size:1rem; border:1px solid #ddd; border-radius:6px; background:#fafaf8; outline:none; font-family:'Inter',sans-serif; }
@@ -80,11 +89,13 @@
     <div class="section-label">Week 1</div>
     <div class="col-heads"><span></span><div class="controls"><span>Day type</span><span>Start</span><span>End</span><span>Hrs w/ Mary</span></div></div>
     <div id="week1"></div>
+    <div class="week-total"><span>Week 1: <b id="wk1h">0</b> hrs worked</span><span class="flag" id="wk1flag"></span></div>
   </div>
   <div class="card">
     <div class="section-label">Week 2</div>
     <div class="col-heads"><span></span><div class="controls"><span>Day type</span><span>Start</span><span>End</span><span>Hrs w/ Mary</span></div></div>
     <div id="week2"></div>
+    <div class="week-total"><span>Week 2: <b id="wk2h">0</b> hrs worked</span><span class="flag" id="wk2flag"></span></div>
   </div>
   <p class="hint" style="margin:-.25rem 0 .75rem .25rem">If you were sent home early, leave the usual 09:00–17:00. "Hrs w/ Mary" can be 4+2. Weekends are off unless you worked.</p>
 
@@ -96,6 +107,8 @@
     </div>
     <p class="hint" style="margin-top:.4rem">Send Toby a photo of the receipt separately.</p>
   </div>
+
+  <div class="period-total"><span>Total this pay period</span><span><b class="big" id="periodH">0</b> hrs worked</span></div>
 
   <button class="btn-send" id="btnSend" onclick="generateMessage()">Send hours to Toby</button>
 
@@ -146,6 +159,12 @@ function evalExpr(s){ if(!s||!String(s).trim()) return 0; const c=String(s).repl
   const p=c.split(/(?=[+-])|(?<=[+-])/).filter(Boolean); let t=0,op='+';
   for(const x of p){ if(x==='+'||x==='-'){op=x;} else { const n=parseFloat(x); if(!isNaN(n)) t = op==='+'?t+n:t-n; } } return t; }
 const H = x => String(Math.round(x*100)/100);
+// Hours between two HH:MM times, rounded UP to the next quarter hour — the same rule the payroll
+// calculator uses, so what she sees here and what she is paid can never disagree. (Locked by a test.)
+function hoursBetween(a,b){ const [sh,sm]=a.split(':').map(Number),[eh,em]=b.split(':').map(Number);
+  let h=(eh+em/60)-(sh+sm/60); if(h<0) h+=24; return Math.ceil(h*4 - 1e-9)/4; }
+function dayHours(d){ return d.type==='worked' ? hoursBetween(d.start||DEFAULT_START, d.end||DEFAULT_END) : 0; }
+const OT_DAY = 8, OT_WEEK = 40;   // thresholds only — how much overtime is worth is worked out by the payroll calculator
 
 // ----- Period: the one containing today (first period end on the cycle that is >= today) -----
 function daysFromAnchor(d){ return Math.round((d - parseISO(ANCHOR_END)) / 86400000); }
@@ -178,7 +197,7 @@ function render(){
     const c=document.getElementById('week'+w); c.innerHTML='';
     days.slice((w-1)*7, w*7).forEach((d,j)=>{ const i=(w-1)*7+j; const dt=parseISO(d.date); const off=d.type!=='worked'; const wk=dt.getDay()===0||dt.getDay()===6;
       c.insertAdjacentHTML('beforeend', `
-        <div class="day ${off?'off':''} ${wk?'weekend':''}">
+        <div class="day ${off?'off':''} ${wk?'weekend':''}" id="day${i}">
           <div class="day-label">${DOW[dt.getDay()]}<small>${MON[dt.getMonth()]} ${dt.getDate()}</small></div>
           <div class="controls">
             <select onchange="setDay(${i},'type',this.value)">${TYPES.map(([v,l])=>`<option value="${v}" ${d.type===v?'selected':''}>${l}</option>`).join('')}</select>
@@ -190,10 +209,37 @@ function render(){
     });
   });
   document.getElementById('busPass').value = busPass;
+  updateTotals();
+}
+
+// Totals are a plain sum of what she entered. The flags say overtime *will apply* — they never work out
+// how much, or at what rate; that stays in the payroll calculator so there is only one set of pay rules.
+function updateTotals(){
+  let period=0;
+  [1,2].forEach(wk=>{
+    const slice=days.slice((wk-1)*7, wk*7);
+    let hrs=0;
+    slice.forEach((d,j)=>{
+      const i=(wk-1)*7+j, h=dayHours(d);
+      hrs+=h;
+      const row=document.getElementById('day'+i);
+      if(row){
+        const old=row.querySelector('.day-flag'); if(old) old.remove();
+        if(h>OT_DAY) row.insertAdjacentHTML('beforeend',
+          `<div class="day-flag">${H(h)} hours — over ${OT_DAY}, so overtime will apply</div>`);
+      }
+    });
+    period+=hrs;
+    document.getElementById('wk'+wk+'h').textContent=H(hrs);
+    document.getElementById('wk'+wk+'flag').textContent =
+      hrs>OT_WEEK ? `Over ${OT_WEEK} hours this week — overtime will apply` : '';
+  });
+  document.getElementById('periodH').textContent=H(period);
 }
 function setDay(i,f,v){
   const d=days[i]; d[f]=v;
   if(f==='type'){ if(v==='worked'){ if(!d.start) d.start=DEFAULT_START; if(!d.end) d.end=DEFAULT_END; } else { d.mary=''; } render(); }
+  else updateTotals();          // a changed start/end time must move the totals too
   hideResult(); saveState();
 }
 function onBusPass(){ busPass=document.getElementById('busPass').value; hideResult(); saveState(); }
