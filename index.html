@@ -9,47 +9,58 @@
   * { margin:0; padding:0; box-sizing:border-box; }
   body { font-family:'Inter',sans-serif; background:#f5f4f0; color:#1a1a1a; min-height:100vh; padding:1.25rem 0.75rem 3rem; }
   .container { max-width:480px; margin:0 auto; }
-  h1 { font-family:'DM Serif Display',serif; font-size:1.5rem; font-weight:400; margin-bottom:0.15rem; }
-  .subtitle { color:#888; font-size:0.8rem; margin-bottom:1rem; }
+  h1 { font-family:'DM Serif Display',serif; font-size:1.7rem; font-weight:400; margin-bottom:0.15rem; }
+  .subtitle { color:#777; font-size:0.95rem; margin-bottom:1rem; }
   .card { background:#fff; border:1px solid #e0ddd8; border-radius:10px; padding:0.9rem 1rem; margin-bottom:0.75rem; }
-  .section-label { font-size:0.72rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:#999; margin-bottom:0.6rem; }
-  .hint { font-size:0.72rem; color:#aaa; line-height:1.4; }
+  .section-label { font-size:0.85rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:#888; margin-bottom:0.7rem; }
+  .hint { font-size:0.85rem; color:#999; line-height:1.45; }
   .period-row { display:flex; gap:0.5rem; align-items:center; }
   .period-row .nav { padding:0.45rem 0.7rem; border:1px solid #ddd; background:#fff; border-radius:8px; font-size:1rem; font-family:'Inter',sans-serif; cursor:pointer; }
   .period-row .nav:active { background:#f0faf4; }
-  .period-label { flex:1; text-align:center; font-size:0.95rem; font-weight:600; color:#2a7a50; }
-  .period-sub { text-align:center; font-size:0.7rem; color:#aaa; margin-top:0.25rem; }
+  .period-label { flex:1; text-align:center; font-size:1.1rem; font-weight:700; color:#2a7a50; }
+  .period-sub { text-align:center; font-size:0.85rem; color:#999; margin-top:0.3rem; }
 
-  .day { display:grid; grid-template-columns: 46px 1fr; gap:0.4rem 0.5rem; align-items:center; padding:0.45rem 0; border-top:1px solid #f0eeea; }
+  /* One day = a block. Worked days get a second line for times; other days need only the first. */
+  .day { padding:0.6rem 0; border-top:1px solid #f0eeea; }
   .day:first-child { border-top:none; }
-  .day.off { opacity:0.55; }
-  .day-label { font-size:0.8rem; color:#555; font-weight:600; line-height:1.15; }
-  .day-label small { display:block; color:#aaa; font-weight:400; font-size:0.65rem; }
-  .controls { display:grid; grid-template-columns: minmax(0,1fr) minmax(0,1.2fr) minmax(0,1.2fr) minmax(0,.6fr); gap:0.25rem; align-items:center; }
-  .controls select, .controls input { width:100%; min-width:0; padding:0.45rem 0.15rem; font-size:0.78rem; border:1px solid #e0ddd8; border-radius:6px; background:#fafaf8; font-family:'Inter',sans-serif; text-align:center; outline:none; -webkit-appearance:none; }
-  .controls input:focus, .controls select:focus { border-color:#7ec8a0; background:#fff; }
-  .controls input:disabled { background:#f3f2ee; color:#bbb; }
-  .controls input[type=time]::-webkit-calendar-picker-indicator { display:none; }
-  .controls input[type=time] { padding-left:0; padding-right:0; }
-  .controls .lbl { font-size:0.6rem; color:#aaa; text-align:center; text-transform:uppercase; letter-spacing:.04em; }
-  .col-heads { display:grid; grid-template-columns: 46px 1fr; gap:0.5rem; margin-bottom:0.2rem; }
-  .col-heads .controls span { font-size:0.6rem; color:#aaa; text-align:center; text-transform:uppercase; letter-spacing:.04em; font-weight:600; }
+  .day.off { opacity:0.6; }
   .day.weekend { background:#fdfaf4; margin:0 -1rem; padding-left:1rem; padding-right:1rem; }
-  .day-flag { grid-column:2 / -1; font-size:0.64rem; color:#b8823a; font-weight:600; margin-top:1px; }
+
+  .day-head { display:flex; align-items:center; gap:0.6rem; }
+  .day-label { font-size:1rem; color:#333; font-weight:700; line-height:1.2; white-space:nowrap; }
+  .day-label small { color:#999; font-weight:400; font-size:0.82rem; margin-left:0.35rem; }
+  .day-head select { flex:1; min-width:0; }
+
+  /* Times keep a floor width so "09:00 AM" is never clipped — on a narrow phone the Mary
+     field drops to its own line instead of squeezing the AM/PM out of view. */
+  .day-times { display:flex; flex-wrap:wrap; align-items:center; gap:0.4rem; margin-top:0.5rem; }
+  .day-times .dash { color:#bbb; font-size:1rem; }
+  .day-times input[type=time] { flex:1 1 6.2rem; min-width:6.2rem; }
+  .mary-group { display:flex; align-items:center; gap:0.4rem; margin-left:auto; }
+  .mary-group .mary-label { font-size:0.9rem; color:#666; white-space:nowrap; }
+  .mary-group input.mary { width:3.6rem; flex:none; }
+
+  /* 16px minimum on every control: readable, and it stops iOS zooming the page when she taps one */
+  .day select, .day input { font-size:1rem; padding:0.6rem 0.4rem; border:1px solid #e0ddd8; border-radius:8px;
+    background:#fafaf8; font-family:'Inter',sans-serif; text-align:center; outline:none; -webkit-appearance:none; color:#1a1a1a; }
+  .day input:focus, .day select:focus { border-color:#7ec8a0; background:#fff; }
+  .day input:disabled { background:#f3f2ee; color:#bbb; }
+  .day input[type=time]::-webkit-calendar-picker-indicator { display:none; }
+  .day-flag { font-size:0.82rem; color:#b8823a; font-weight:600; margin-top:0.4rem; }
 
   .week-total { display:flex; justify-content:space-between; align-items:baseline; gap:0.5rem;
-                border-top:1px solid #eee; margin-top:0.6rem; padding-top:0.55rem; font-size:0.8rem; color:#555; }
+                border-top:1px solid #eee; margin-top:0.7rem; padding-top:0.65rem; font-size:0.95rem; color:#555; }
   .week-total b { font-weight:700; }
-  .week-total .flag { color:#b8823a; font-weight:600; font-size:0.72rem; text-align:right; }
-  .period-total { background:#fff; border:1px solid #e0ddd8; border-radius:10px; padding:0.75rem 1rem;
-                  margin-bottom:0.75rem; display:flex; justify-content:space-between; align-items:baseline; font-size:0.85rem; color:#555; }
-  .period-total .big { font-family:'DM Serif Display',serif; font-size:1.25rem; color:#1a1a1a; }
+  .week-total .flag { color:#b8823a; font-weight:600; font-size:0.85rem; text-align:right; }
+  .period-total { background:#fff; border:1px solid #e0ddd8; border-radius:10px; padding:0.9rem 1rem;
+                  margin-bottom:0.75rem; display:flex; justify-content:space-between; align-items:baseline; font-size:1rem; color:#555; }
+  .period-total .big { font-family:'DM Serif Display',serif; font-size:1.5rem; color:#1a1a1a; }
 
-  .field label { display:block; font-size:0.76rem; color:#555; margin-bottom:3px; }
-  .field input { width:100%; padding:0.55rem 0.6rem; font-size:1rem; border:1px solid #ddd; border-radius:6px; background:#fafaf8; outline:none; font-family:'Inter',sans-serif; }
+  .field label { display:block; font-size:0.9rem; color:#555; margin-bottom:5px; }
+  .field input { width:100%; padding:0.7rem 0.6rem; font-size:1.1rem; border:1px solid #ddd; border-radius:6px; background:#fafaf8; outline:none; font-family:'Inter',sans-serif; }
   .field input:focus { border-color:#7ec8a0; }
 
-  .btn-send { width:100%; margin-top:0.5rem; padding:0.95rem; background:#1a1a1a; color:#fff; border:none; border-radius:10px; font-size:1rem; font-family:'Inter',sans-serif; font-weight:600; cursor:pointer; }
+  .btn-send { width:100%; margin-top:0.5rem; padding:1.1rem; background:#1a1a1a; color:#fff; border:none; border-radius:10px; font-size:1.15rem; font-family:'Inter',sans-serif; font-weight:600; cursor:pointer; }
   .btn-send:active { background:#555; }
   .btn-action { flex:1; padding:0.75rem; border-radius:8px; font-size:0.85rem; font-family:'Inter',sans-serif; font-weight:600; cursor:pointer; border:none; text-align:center; }
   .btn-copy { background:#1a1a1a; color:#fff; }
@@ -87,17 +98,15 @@
   <!-- Days -->
   <div class="card">
     <div class="section-label">Week 1</div>
-    <div class="col-heads"><span></span><div class="controls"><span>Day type</span><span>Start</span><span>End</span><span>Hrs w/ Mary</span></div></div>
     <div id="week1"></div>
     <div class="week-total"><span>Week 1: <b id="wk1h">0</b> hrs worked</span><span class="flag" id="wk1flag"></span></div>
   </div>
   <div class="card">
     <div class="section-label">Week 2</div>
-    <div class="col-heads"><span></span><div class="controls"><span>Day type</span><span>Start</span><span>End</span><span>Hrs w/ Mary</span></div></div>
     <div id="week2"></div>
     <div class="week-total"><span>Week 2: <b id="wk2h">0</b> hrs worked</span><span class="flag" id="wk2flag"></span></div>
   </div>
-  <p class="hint" style="margin:-.25rem 0 .75rem .25rem">If you were sent home early, leave the usual 09:00–17:00. "Hrs w/ Mary" can be 4+2. Weekends are off unless you worked.</p>
+  <p class="hint" style="margin:-.25rem 0 .75rem .25rem">If you were sent home early, leave the usual 09:00–17:00. Hours with Mary can be written 4+2. Weekends are off unless you worked.</p>
 
   <!-- Bus pass -->
   <div class="card">
@@ -196,15 +205,20 @@ function render(){
   [1,2].forEach(w=>{
     const c=document.getElementById('week'+w); c.innerHTML='';
     days.slice((w-1)*7, w*7).forEach((d,j)=>{ const i=(w-1)*7+j; const dt=parseISO(d.date); const off=d.type!=='worked'; const wk=dt.getDay()===0||dt.getDay()===6;
+      const worked = d.type==='worked';
       c.insertAdjacentHTML('beforeend', `
         <div class="day ${off?'off':''} ${wk?'weekend':''}" id="day${i}">
-          <div class="day-label">${DOW[dt.getDay()]}<small>${MON[dt.getMonth()]} ${dt.getDate()}</small></div>
-          <div class="controls">
+          <div class="day-head">
+            <div class="day-label">${DOW[dt.getDay()]}<small>${MON[dt.getMonth()]} ${dt.getDate()}</small></div>
             <select onchange="setDay(${i},'type',this.value)">${TYPES.map(([v,l])=>`<option value="${v}" ${d.type===v?'selected':''}>${l}</option>`).join('')}</select>
-            <input type="time" value="${d.start}" ${off?'disabled':''} onchange="setDay(${i},'start',this.value)">
-            <input type="time" value="${d.end}" ${off?'disabled':''} onchange="setDay(${i},'end',this.value)">
-            <input type="text" inputmode="decimal" value="${d.mary}" placeholder="0" ${off?'disabled':''} oninput="setDay(${i},'mary',this.value)">
           </div>
+          ${worked ? `<div class="day-times">
+            <input type="time" value="${d.start}" onchange="setDay(${i},'start',this.value)">
+            <span class="dash">–</span>
+            <input type="time" value="${d.end}" onchange="setDay(${i},'end',this.value)">
+            <span class="mary-group"><span class="mary-label">Mary</span>
+            <input type="text" class="mary" inputmode="decimal" value="${d.mary}" placeholder="0" oninput="setDay(${i},'mary',this.value)"></span>
+          </div>` : ``}
         </div>`);
     });
   });
