@@ -8,80 +8,105 @@
 <style>
   @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700&display=swap');
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family:'Inter',sans-serif; background:#f5f4f0; color:#1a1a1a; min-height:100vh; padding:1.25rem 0.75rem 3rem; }
+  body { font-family:'Inter',sans-serif; background:#f4f2ec; color:#1c1b19; min-height:100vh; padding:1.5rem 1rem 3rem;
+    -webkit-text-size-adjust:100%; }
   .container { max-width:480px; margin:0 auto; }
-  h1 { font-family:'DM Serif Display',serif; font-size:1.7rem; font-weight:400; margin-bottom:0.15rem; }
-  .subtitle { color:#777; font-size:0.95rem; margin-bottom:1rem; }
-  .card { background:#fff; border:1px solid #e0ddd8; border-radius:10px; padding:0.9rem 1rem; margin-bottom:0.75rem; }
-  .section-label { font-size:0.85rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:#888; margin-bottom:0.7rem; }
-  .hint { font-size:0.85rem; color:#999; line-height:1.45; }
-  .period-row { display:flex; gap:0.5rem; align-items:center; }
-  .period-row .nav { padding:0.45rem 0.7rem; border:1px solid #ddd; background:#fff; border-radius:8px; font-size:1rem; font-family:'Inter',sans-serif; cursor:pointer; }
-  .period-row .nav:active { background:#f0faf4; }
-  .period-label { flex:1; text-align:center; font-size:1.1rem; font-weight:700; color:#2a7a50; }
-  .period-sub { text-align:center; font-size:0.85rem; color:#999; margin-top:0.3rem; }
+  h1 { font-family:'DM Serif Display',serif; font-size:2rem; font-weight:400; margin-bottom:0.1rem; letter-spacing:-0.01em; }
+  .subtitle { color:#8b857b; font-size:0.92rem; margin-bottom:1.15rem; line-height:1.45; }
+  .card { background:#fff; border:1px solid #e8e3da; border-radius:14px; padding:1rem 1.1rem; margin-bottom:0.7rem;
+    box-shadow:0 1px 2px rgba(28,27,25,0.03); }
+  .section-label { font-size:0.72rem; font-weight:600; text-transform:uppercase; letter-spacing:0.1em; color:#a09a90; margin-bottom:0.55rem; }
+  .hint { font-size:0.85rem; color:#9c968c; line-height:1.5; }
 
-  /* One day = a block. Worked days get a second line for times; other days need only the first. */
-  .day { padding:0.6rem 0; border-top:1px solid #f0eeea; }
+  /* Period: the date is the anchor of the page, so it carries the display face */
+  .period-row { display:flex; gap:0.5rem; align-items:center; }
+  .period-row .nav { width:2.5rem; height:2.5rem; flex:0 0 auto; display:flex; align-items:center; justify-content:center;
+    padding:0; border:1px solid #e8e3da; background:#fff; border-radius:50%; cursor:pointer; color:#8b857b;
+    -webkit-appearance:none; transition:background 0.12s, color 0.12s; }
+  .period-row .nav svg { width:0.6rem; height:0.95rem; fill:none; stroke:currentColor; stroke-width:1.8;
+    stroke-linecap:round; stroke-linejoin:round; }
+  .period-row .nav:active { background:#eef6f1; color:#24603f; }
+  .period-label { flex:1; text-align:center; font-family:'DM Serif Display',serif; font-size:1.32rem; font-weight:400;
+    color:#24603f; line-height:1.2; }
+  .period-sub { text-align:center; font-size:0.8rem; color:#a09a90; margin-top:0.4rem; }
+
+  /* One day = a block. Worked days get a second line for times; other days need only the first.
+     Only one control on the row carries a visible outline — the rest are soft fills — so the row
+     reads as a sentence rather than four competing boxes. */
+  .day { padding:0.7rem 0; border-top:1px solid #f2efe9; }
   .day:first-child { border-top:none; }
-  .day.off { opacity:0.6; }
-  .day.weekend { background:#fdfaf4; margin:0 -1rem; padding-left:1rem; padding-right:1rem; }
+  .day.weekend { background:none; margin:0; padding-left:0; padding-right:0; }
 
   .day-head { display:flex; align-items:center; justify-content:space-between; gap:0.6rem; }
-  .day-label { font-size:1rem; color:#333; font-weight:700; line-height:1.2; white-space:nowrap; }
-  .day-label small { color:#999; font-weight:400; font-size:0.82rem; margin-left:0.35rem; }
-  /* sized to its longest option ("Stat holiday") rather than stretched across the row, with a
-     chevron so it reads as a dropdown instead of a button */
-  .day .day-head select { flex:0 0 auto; width:8.6rem; text-align:left; padding-left:0.75rem; padding-right:1.9rem;
-    background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23999' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
-    background-repeat:no-repeat; background-position:right 0.7rem center; }
-  .day.off .day-head select { color:#8a8a8a; }
+  .day-label { font-size:1rem; color:#2a2823; font-weight:600; line-height:1.2; white-space:nowrap; }
+  .day-label small { color:#a09a90; font-weight:400; font-size:0.85rem; margin-left:0.4rem; }
+  .day.off .day-label { color:#a09a90; }
+  .day.off .day-label small { color:#c2bcb2; }
+
+  /* Sized to its longest option ("Stat holiday") rather than stretched across the row. Quiet by
+     default, with the chevron and the type's own colour doing the work an outline used to do. */
+  .day .day-head select { flex:0 0 auto; width:8.4rem; text-align:right; padding:0.5rem 1.7rem 0.5rem 0.6rem;
+    border-color:transparent; background-color:transparent; font-weight:600; color:#24603f;
+    background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' fill='none' stroke='%23b0a99f' stroke-width='1.6' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat:no-repeat; background-position:right 0.55rem center; }
+  .day.t-off .day-head select { color:#a09a90; font-weight:400; }
+  .day.t-sick .day-head select,
+  .day.t-vacation .day-head select,
+  .day.t-stat .day-head select { color:#a8752c; }   /* paid, but not worked */
 
   /* Times keep a floor width so "09:00 AM" is never clipped — on a narrow phone the Mary
      field drops to its own line instead of squeezing the AM/PM out of view. */
-  .day-times { display:flex; flex-wrap:wrap; align-items:center; gap:0.4rem; margin-top:0.5rem; }
-  .day-times .dash { color:#bbb; font-size:1rem; }
+  .day-times { display:flex; flex-wrap:wrap; align-items:center; gap:0.35rem; margin-top:0.5rem; }
+  .day-times .dash { color:#c2bcb2; font-size:1rem; }
   .day-times input[type=time] { flex:1 1 6.2rem; min-width:6.2rem; }
-  .mary-group { display:flex; align-items:center; gap:0.4rem; margin-left:auto; }
-  .mary-group .mary-label { font-size:0.9rem; color:#666; white-space:nowrap; }
-  .mary-group input.mary { width:3.6rem; flex:none; }
+  .mary-group { display:flex; align-items:center; gap:0.45rem; margin-left:auto; }
+  .mary-group .mary-label { font-size:0.88rem; color:#a09a90; white-space:nowrap; }
+  .mary-group input.mary { width:3.4rem; flex:none; }
 
   /* 16px minimum on every control: readable, and it stops iOS zooming the page when she taps one */
-  .day select, .day input { font-size:1rem; padding:0.6rem 0.4rem; border:1px solid #e0ddd8; border-radius:8px;
-    background-color:#fafaf8; font-family:'Inter',sans-serif; text-align:center; outline:none; -webkit-appearance:none; color:#1a1a1a; }
-  .day input:focus, .day select:focus { border-color:#7ec8a0; background-color:#fff; }
-  .day input:disabled { background-color:#f3f2ee; color:#bbb; }
+  .day select, .day input { font-size:1rem; padding:0.6rem 0.4rem; border:1px solid transparent; border-radius:10px;
+    background-color:#f4f2ec; font-family:'Inter',sans-serif; text-align:center; outline:none;
+    -webkit-appearance:none; color:#2a2823; transition:background-color 0.12s, border-color 0.12s; }
+  .day input::placeholder { color:#c2bcb2; }
+  .day input:focus, .day select:focus { border-color:#8fcbaa; background-color:#fff; }
+  .day input:disabled { background-color:#f7f5f1; color:#c9c3b9; }
   .day input[type=time]::-webkit-calendar-picker-indicator { display:none; }
-  .day-flag { font-size:0.82rem; color:#b8823a; font-weight:600; margin-top:0.4rem; }
+  .day-flag { font-size:0.8rem; color:#a8752c; font-weight:500; margin-top:0.45rem; }
 
   .week-total { display:flex; justify-content:space-between; align-items:baseline; gap:0.5rem;
-                border-top:1px solid #eee; margin-top:0.7rem; padding-top:0.65rem; font-size:0.95rem; color:#555; }
-  .week-total b { font-weight:700; }
-  .week-total .flag { color:#b8823a; font-weight:600; font-size:0.85rem; text-align:right; }
-  .period-total { background:#fff; border:1px solid #e0ddd8; border-radius:10px; padding:0.9rem 1rem;
-                  margin-bottom:0.75rem; display:flex; justify-content:space-between; align-items:baseline; font-size:1rem; color:#555; }
-  .period-total .big { font-family:'DM Serif Display',serif; font-size:1.5rem; color:#1a1a1a; }
+                border-top:1px solid #f2efe9; margin-top:0.8rem; padding-top:0.7rem; font-size:0.9rem; color:#8b857b; }
+  .week-total b { font-weight:600; color:#2a2823; }
+  .week-total .flag { color:#a8752c; font-weight:500; font-size:0.82rem; text-align:right; }
+  .period-total { background:#24603f; border:1px solid #24603f; border-radius:14px; padding:1rem 1.1rem;
+                  margin:0.2rem 0 1rem; display:flex; justify-content:space-between; align-items:baseline;
+                  font-size:0.95rem; color:#bcd8c8; }
+  .period-total .big { font-family:'DM Serif Display',serif; font-size:1.6rem; color:#fff; }
 
-  .field label { display:block; font-size:0.9rem; color:#555; margin-bottom:5px; }
-  .field input { width:100%; padding:0.7rem 0.6rem; font-size:1.1rem; border:1px solid #ddd; border-radius:6px; background:#fafaf8; outline:none; font-family:'Inter',sans-serif; }
-  .field input:focus { border-color:#7ec8a0; }
+  .field label { display:block; font-size:0.88rem; color:#8b857b; margin-bottom:0.45rem; line-height:1.4; }
+  .field input { width:100%; padding:0.7rem 0.75rem; font-size:1.05rem; border:1px solid transparent; border-radius:10px;
+    background:#f4f2ec; outline:none; font-family:'Inter',sans-serif; color:#2a2823; }
+  .field input::placeholder { color:#c2bcb2; }
+  .field input:focus { border-color:#8fcbaa; background:#fff; }
 
-  .btn-send { width:100%; margin-top:0.5rem; padding:1.1rem; background:#1a1a1a; color:#fff; border:none; border-radius:10px; font-size:1.15rem; font-family:'Inter',sans-serif; font-weight:600; cursor:pointer; }
-  .btn-send:active { background:#555; }
-  .btn-action { flex:1; padding:0.75rem; border-radius:8px; font-size:0.85rem; font-family:'Inter',sans-serif; font-weight:600; cursor:pointer; border:none; text-align:center; }
-  .btn-copy { background:#1a1a1a; color:#fff; }
-  .btn-copy.copied { background:#7ec8a0; }
-  .btn-text { background:#f0faf4; color:#2a7a50; border:1px solid #c0e8d0; }
-  .btn-small { padding:0.5rem 0.8rem; border-radius:6px; font-size:0.8rem; font-family:'Inter',sans-serif; font-weight:600; cursor:pointer; border:1px solid #ddd; background:#f8f7f4; color:#555; }
-  .result-box { margin-top:1rem; background:#fff; border:2px solid #7ec8a0; border-radius:10px; padding:1.1rem; }
-  .result-box .section-label { color:#7ec8a0; }
+  .btn-send { width:100%; margin-top:0.5rem; padding:1.05rem; background:#1c1b19; color:#fff; border:none; border-radius:12px;
+    font-size:1.05rem; font-family:'Inter',sans-serif; font-weight:600; letter-spacing:0.01em; cursor:pointer; }
+  .btn-send:active { background:#403d38; }
+  .btn-action { flex:1; padding:0.8rem; border-radius:10px; font-size:0.9rem; font-family:'Inter',sans-serif; font-weight:600; cursor:pointer; border:1px solid transparent; text-align:center; }
+  .btn-copy { background:#1c1b19; color:#fff; }
+  .btn-copy.copied { background:#24603f; }
+  .btn-text { background:#eef6f1; color:#24603f; border-color:#cfe5d9; }
+  .btn-small { padding:0.55rem 0.9rem; border-radius:8px; font-size:0.85rem; font-family:'Inter',sans-serif; font-weight:600; cursor:pointer; border:1px solid #e8e3da; background:#f4f2ec; color:#5c5750; }
+  .result-box { margin-top:1rem; background:#fff; border:1px solid #24603f; border-radius:14px; padding:1.1rem;
+    box-shadow:0 1px 2px rgba(28,27,25,0.03); }
+  .result-box .section-label { color:#24603f; }
   .result-actions { display:flex; gap:0.5rem; margin-bottom:0.75rem; }
-  .result-preview { background:#fafaf8; border:1px solid #eee; border-radius:8px; padding:0.8rem; font-family:monospace; font-size:0.74rem; line-height:1.5; white-space:pre-wrap; color:#555; max-height:260px; overflow-y:auto; user-select:all; }
-  textarea { width:100%; padding:0.6rem; font-size:0.8rem; font-family:monospace; border:1px solid #ddd; border-radius:6px; background:#fafaf8; outline:none; resize:vertical; }
-  details summary { font-size:0.8rem; color:#777; cursor:pointer; font-weight:600; }
-  .status { font-size:0.75rem; margin-top:0.4rem; min-height:1rem; }
-  .ok { color:#2a7a50; font-weight:600; } .err { color:#c45a5a; font-weight:600; }
-  .saved { font-size:0.68rem; color:#aaa; text-align:right; margin-top:-0.4rem; margin-bottom:0.6rem; }
+  .result-preview { background:#f7f5f1; border:1px solid #eeeae3; border-radius:10px; padding:0.85rem; font-family:ui-monospace,Menlo,monospace; font-size:0.78rem; line-height:1.55; white-space:pre-wrap; color:#5c5750; max-height:260px; overflow-y:auto; user-select:all; }
+  textarea { width:100%; padding:0.7rem; font-size:0.85rem; font-family:ui-monospace,Menlo,monospace; border:1px solid #e8e3da; border-radius:10px; background:#f7f5f1; outline:none; resize:vertical; color:#2a2823; }
+  textarea:focus { border-color:#8fcbaa; background:#fff; }
+  details summary { font-size:0.85rem; color:#8b857b; cursor:pointer; font-weight:500; }
+  .status { font-size:0.8rem; margin-top:0.4rem; min-height:1rem; }
+  .ok { color:#24603f; font-weight:600; } .err { color:#b8564f; font-weight:600; }
+  .saved { font-size:0.72rem; color:#b5afa5; text-align:right; margin:-0.35rem 0.25rem 0.7rem; }
   .hidden { display:none; }
   .version { text-align:center; font-size:0.8rem; color:#bbb; margin-top:1.25rem; }
   .version a { color:#ccc; text-decoration:none; font-size:0.95rem; line-height:1;
@@ -96,9 +121,9 @@
   <!-- Period -->
   <div class="card">
     <div class="period-row">
-      <button class="nav" onclick="shiftPeriod(-1)" aria-label="Previous period">◀</button>
+      <button class="nav" onclick="shiftPeriod(-1)" aria-label="Previous period"><svg viewBox="0 0 10 16" aria-hidden="true"><path d="M8 1L2 8l6 7"/></svg></button>
       <div class="period-label" id="periodLabel"></div>
-      <button class="nav" onclick="shiftPeriod(1)" aria-label="Next period">▶</button>
+      <button class="nav" onclick="shiftPeriod(1)" aria-label="Next period"><svg viewBox="0 0 10 16" aria-hidden="true"><path d="M2 1l6 7-6 7"/></svg></button>
     </div>
     <div class="period-sub" id="periodSub"></div>
   </div>
@@ -162,7 +187,7 @@ const ANCHOR_END = '2026-09-04';   // a known period end (Friday); every period 
 const PERIOD_DAYS = 14;
 const DEFAULT_START = '09:00', DEFAULT_END = '17:00';
 const TOBY_SMS = '';               // deliberately blank: this page is public, so no number goes in it. The phone asks who to send to.
-const VERSION = '2026-09-09';   // bump when the page changes, so Toby can ask which one she's on
+const VERSION = '2026-09-10';  // bump when the page changes, so Toby can ask which one she's on
 const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const TYPES = [['worked','Worked'],['off','Off'],['sick','Sick'],['vacation','Vacation'],['stat','Stat holiday']];
@@ -219,7 +244,7 @@ function render(){
     days.slice((w-1)*7, w*7).forEach((d,j)=>{ const i=(w-1)*7+j; const dt=parseISO(d.date); const off=d.type!=='worked'; const wk=dt.getDay()===0||dt.getDay()===6;
       const worked = d.type==='worked';
       c.insertAdjacentHTML('beforeend', `
-        <div class="day ${off?'off':''} ${wk?'weekend':''}" id="day${i}">
+        <div class="day ${off?'off':''} t-${d.type} ${wk?'weekend':''}" id="day${i}">
           <div class="day-head">
             <div class="day-label">${DOW[dt.getDay()]}<small>${MON[dt.getMonth()]} ${dt.getDate()}</small></div>
             <select onchange="setDay(${i},'type',this.value)">${TYPES.map(([v,l])=>`<option value="${v}" ${d.type===v?'selected':''}>${l}</option>`).join('')}</select>
@@ -229,7 +254,7 @@ function render(){
             <span class="dash">–</span>
             <input type="time" value="${d.end}" onchange="setDay(${i},'end',this.value)">
             <span class="mary-group"><span class="mary-label">Mary</span>
-            <input type="text" class="mary" inputmode="decimal" value="${d.mary}" placeholder="0" oninput="setDay(${i},'mary',this.value)"></span>
+            <input type="text" class="mary" inputmode="decimal" value="${d.mary}" placeholder="–" oninput="setDay(${i},'mary',this.value)"></span>
           </div>` : ``}
         </div>`);
     });
@@ -350,8 +375,38 @@ function setPeriodLabelOnly(){ const e=parseISO(currentEnd), s=addDays(e,-13);
 // Her entries are keyed to the site, not the address, so nothing is lost.
 function hardReload(){ location.href = location.pathname + '?r=' + Date.now(); }
 
+// Home-screen web apps on iOS can sit on a cached copy indefinitely, so the page
+// checks for itself: version.json is fetched with the cache bypassed, and if it
+// names a version this copy isn't, the page reloads itself to a fresh address.
+// Her entries live in storage keyed to the site, so a reload never loses them.
+// If a reload doesn't actually bring in the new copy, we stop after one attempt
+// rather than looping.
+// Decides what to do about a published version. Returns the address to reload to,
+// or null to stay put. Separated from the fetch so it can be tested directly.
+function updateTarget(published){
+  if(!published || typeof published !== 'string') return null;   // missing or malformed
+  if(published === VERSION){ try{ sessionStorage.removeItem('ts_update_try'); }catch(e){} return null; }
+  var tried = null; try{ tried = sessionStorage.getItem('ts_update_try'); }catch(e){}
+  if(tried === published) return null;              // already tried for this one; don't loop
+  try{ sessionStorage.setItem('ts_update_try', published); }catch(e){}
+  return location.pathname + '?v=' + encodeURIComponent(published);
+}
+
+function checkForUpdate(){
+  if(typeof fetch !== 'function') return;           // very old browser: the ↻ still works
+  var url = location.pathname.replace(/[^/]*$/, '') + 'version.json?t=' + Date.now();
+  fetch(url, { cache: 'no-store' })
+    .then(function(r){ return r.ok ? r.json() : null; })
+    .then(function(j){
+      var to = updateTarget(j && j.version);
+      if(to) location.replace(to);
+    })
+    .catch(function(){});                           // offline, or no version.json: carry on
+}
+
 // ----- Init -----
 document.getElementById('ver').textContent = VERSION;
+checkForUpdate();
 (function(){ const t=new Date(); t.setHours(0,0,0,0); setPeriod(periodContaining(t)); })();
 </script>
 </body>
