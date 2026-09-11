@@ -187,7 +187,7 @@ const ANCHOR_END = '2026-09-04';   // a known period end (Friday); every period 
 const PERIOD_DAYS = 14;
 const DEFAULT_START = '09:00', DEFAULT_END = '17:00';
 const TOBY_SMS = '';               // deliberately blank: this page is public, so no number goes in it. The phone asks who to send to.
-const VERSION = '2026-09-10';  // bump when the page changes, so Toby can ask which one she's on
+const VERSION = '2026-09-11';  // bump when the page changes, so Toby can ask which one she's on
 const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const TYPES = [['worked','Worked'],['off','Off'],['sick','Sick'],['vacation','Vacation'],['stat','Stat holiday']];
@@ -351,14 +351,28 @@ function resumeFromText(){
   if(!head || !onGrid(head[1])){ st.innerHTML='<span class="err">Couldn\'t find "Timesheet PP end …" with a valid date in that text.</span>'; return; }
   const lines=text.split('\n').map(l=>l.trim()).filter(l=>/^(Sun|Mon|Tue|Wed|Thu|Fri|Sat)\s/i.test(l));
   if(lines.length!==14){ st.innerHTML=`<span class="err">Expected 14 day lines, found ${lines.length}.</span>`; return; }
-  const nd=defaultDays(head[1]);
+  const nd=defaultDays(head[1]); const problems=[];
   lines.forEach((l,i)=>{
-    const m=l.match(/:\s*(\d{1,2}:\d{2})\s*[-–]\s*(\d{1,2}:\d{2})(?:,\s*Mary\s*([\d.+]+))?/i);
-    if(m){ nd[i].type='worked'; nd[i].start=m[1].padStart(5,'0'); nd[i].end=m[2].padStart(5,'0'); nd[i].mary=m[3]||''; }
-    else { const t=l.match(/:\s*(off|sick|vacation|stat|holiday|unpaid)/i);
-      nd[i].type = t ? (t[1].toLowerCase()==='holiday'?'stat':t[1].toLowerCase()==='unpaid'?'off':t[1].toLowerCase()) : 'off';
-      nd[i].start=''; nd[i].end=''; nd[i].mary=''; }
+    const dt=parseISO(nd[i].date);
+    // Check the label really is the day it is standing in for, so a missing or duplicated line
+    // can't silently shift every day after it.
+    const lab=l.match(/^(Sun|Mon|Tue|Wed|Thu|Fri|Sat)\s+([A-Za-z]{3})\w*\.?\s+(\d{1,2})/i);
+    if(lab && (lab[2].toLowerCase()!==MON[dt.getMonth()].toLowerCase() || +lab[3]!==dt.getDate() || lab[1].toLowerCase()!==DOW[dt.getDay()].toLowerCase()))
+      problems.push(`line ${i+1} says "${lab[1]} ${lab[2]} ${lab[3]}" but day ${i+1} is ${DOW[dt.getDay()]} ${MON[dt.getMonth()]} ${dt.getDate()}`);
+    // Same separators the calculator accepts, em dash included — a phone or mail app can turn a
+    // hyphen into one, and that must not quietly become an unpaid day.
+    const m=l.match(/:\s*(\d{1,2}:\d{2})\s*(?:[-–—]|to)\s*(\d{1,2}:\d{2})(?:,\s*Mary\s*([\d.+]+))?/i);
+    if(m){ nd[i].type='worked'; nd[i].start=m[1].padStart(5,'0'); nd[i].end=m[2].padStart(5,'0'); nd[i].mary=m[3]||'';
+      if(/mary/i.test(l) && !m[3]) problems.push(`line ${i+1}: couldn't read the Mary hours`);
+      return; }
+    const t=l.match(/:\s*(off|sick|vacation|stat|holiday|unpaid)/i);
+    if(t){ nd[i].type = t[1].toLowerCase()==='holiday'?'stat':t[1].toLowerCase()==='unpaid'?'off':t[1].toLowerCase();
+      nd[i].start=''; nd[i].end=''; nd[i].mary=''; return; }
+    problems.push(`line ${i+1}: couldn't read "${l}"`);
   });
+  // All or nothing. A partly-understood timesheet is worse than none, because she can't see
+  // which day was dropped.
+  if(problems.length){ st.innerHTML=`<span class="err">Not restored — ${problems.join('; ')}.</span>`; return; }
   const bus=text.match(/bus\s*pass[^\d\n]*([\d,]+(?:\.\d{1,2})?)/i);
   currentEnd=head[1]; days=nd; busPass = bus ? parseFloat(bus[1].replace(/,/g,'')).toFixed(2) : '';
   saveState();
