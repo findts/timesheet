@@ -40,6 +40,7 @@
   .day-head { display:flex; align-items:center; justify-content:space-between; gap:0.6rem; }
   .day-label { font-size:1rem; color:#2a2823; font-weight:600; line-height:1.2; white-space:nowrap; }
   .day-label small { color:#a09a90; font-weight:400; font-size:0.85rem; margin-left:0.4rem; }
+  .day-label .stat-name { display:block; color:#a8752c; font-weight:500; font-size:0.78rem; margin-top:0.15rem; white-space:normal; }
   .day.off .day-label { color:#a09a90; }
   .day.off .day-label small { color:#c2bcb2; }
 
@@ -140,7 +141,7 @@
     <div id="week2"></div>
     <div class="week-total"><span>Week 2: <b id="wk2h">0</b> hrs worked</span><span class="flag" id="wk2flag"></span></div>
   </div>
-  <p class="hint" style="margin:-.25rem 0 .75rem .25rem">If you were sent home early, leave the usual 09:00–17:00. Hours with Mary can be written 4+2. Weekends are off unless you worked.</p>
+  <p class="hint" style="margin:-.25rem 0 .75rem .25rem">Put the times you actually worked — if you finished early, put the time you left. Hours with Mary can be written 4+2. Weekends are off unless you worked.</p>
 
   <!-- Bus pass -->
   <div class="card">
@@ -187,7 +188,7 @@ const ANCHOR_END = '2026-09-04';   // a known period end (Friday); every period 
 const PERIOD_DAYS = 14;
 const DEFAULT_START = '09:00', DEFAULT_END = '17:00';
 const TOBY_SMS = '';               // deliberately blank: this page is public, so no number goes in it. The phone asks who to send to.
-const VERSION = '2026-09-11';  // bump when the page changes, so Toby can ask which one she's on
+const VERSION = '2026-10-17';  // bump when the page changes, so Toby can ask which one she's on
 const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const TYPES = [['worked','Worked'],['off','Off'],['sick','Sick'],['vacation','Vacation'],['stat','Stat holiday']];
@@ -232,10 +233,46 @@ function setPeriod(endISO){
 function shiftPeriod(n){ setPeriod(iso(addDays(parseISO(currentEnd), n*PERIOD_DAYS))); }
 
 // ----- Days -----
+// ----- BC statutory holidays -----
+// The eleven in the BC Employment Standards Act: New Year's Day, Family Day (3rd Monday of February),
+// Good Friday, Victoria Day (the Monday before May 25), Canada Day (July 1, or July 2 when July 1 is a
+// Sunday), B.C. Day (1st Monday of August), Labour Day (1st Monday of September), National Day for
+// Truth and Reconciliation (September 30), Thanksgiving (2nd Monday of October), Remembrance Day
+// (November 11) and Christmas Day. Boxing Day and Easter Monday are NOT BC stats.
+// A stat that falls on her day off still earns an average day's pay (ESA s.45(2)).
+// This block is identical in the timesheet page and the calculator; a test keeps them in step.
+function bcStatHolidays(year){
+  const ymd=(m,d)=>`${year}-${String(m).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+  const nthMonday=(m,n)=>{ const first=new Date(year,m-1,1).getDay(); return 1+((8-first)%7)+(n-1)*7; };
+  // Easter Sunday (Anonymous Gregorian algorithm); Good Friday is two days before.
+  const a=year%19, b=Math.floor(year/100), c=year%100, d=Math.floor(b/4), e=b%4, f=Math.floor((b+8)/25),
+        g=Math.floor((b-f+1)/3), h=(19*a+b-d-g+15)%30, i=Math.floor(c/4), k=c%4, l=(32+2*e+2*i-h-k)%7,
+        m=Math.floor((a+11*h+22*l)/451), em=Math.floor((h+l-7*m+114)/31), ed=((h+l-7*m+114)%31)+1;
+  const gf=new Date(year,em-1,ed-2);
+  let vd=24; while(new Date(year,4,vd).getDay()!==1) vd--;                 // Monday on or before May 24
+  const canada = new Date(year,6,1).getDay()===0 ? 2 : 1;
+  const out={};
+  out[ymd(1,1)]="New Year's Day";
+  out[ymd(2,nthMonday(2,3))]='Family Day';
+  out[ymd(gf.getMonth()+1,gf.getDate())]='Good Friday';
+  out[ymd(5,vd)]='Victoria Day';
+  out[ymd(7,canada)]='Canada Day';
+  out[ymd(8,nthMonday(8,1))]='B.C. Day';
+  out[ymd(9,nthMonday(9,1))]='Labour Day';
+  out[ymd(9,30)]='Truth and Reconciliation Day';
+  out[ymd(10,nthMonday(10,2))]='Thanksgiving';
+  out[ymd(11,11)]='Remembrance Day';
+  out[ymd(12,25)]='Christmas Day';
+  return out;
+}
+function statHoliday(isoDate){ return bcStatHolidays(+String(isoDate).slice(0,4))[isoDate] || null; }
+
 function defaultDays(endISO){
   const end=parseISO(endISO), out=[];
   for(let i=13;i>=0;i--){ const d=addDays(end,-i); const wk=d.getDay()===0||d.getDay()===6;
-    out.push({ date:iso(d), type: wk?'off':'worked', start: wk?'':DEFAULT_START, end: wk?'':DEFAULT_END, mary:'' }); }
+    // Stat holidays start as Stat holiday rather than a 9–5 work day; she changes it if she worked.
+    const st=statHoliday(iso(d));
+    out.push({ date:iso(d), type: st?'stat':(wk?'off':'worked'), start: (st||wk)?'':DEFAULT_START, end: (st||wk)?'':DEFAULT_END, mary:'' }); }
   return out;
 }
 function render(){
@@ -246,7 +283,7 @@ function render(){
       c.insertAdjacentHTML('beforeend', `
         <div class="day ${off?'off':''} t-${d.type} ${wk?'weekend':''}" id="day${i}">
           <div class="day-head">
-            <div class="day-label">${DOW[dt.getDay()]}<small>${MON[dt.getMonth()]} ${dt.getDate()}</small></div>
+            <div class="day-label">${DOW[dt.getDay()]}<small>${MON[dt.getMonth()]} ${dt.getDate()}</small>${statHoliday(d.date)?`<span class="stat-name">${statHoliday(d.date)}</span>`:''}</div>
             <select onchange="setDay(${i},'type',this.value)">${TYPES.map(([v,l])=>`<option value="${v}" ${d.type===v?'selected':''}>${l}</option>`).join('')}</select>
           </div>
           ${worked ? `<div class="day-times">
