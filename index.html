@@ -6,12 +6,11 @@
 <meta http-equiv="Cache-Control" content="no-cache">
 <title>Tita's Timesheet</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700&display=swap');
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family:'Inter',sans-serif; background:#f4f2ec; color:#1c1b19; min-height:100vh; padding:1.5rem 1rem 3rem;
+  body { font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif; background:#f4f2ec; color:#1c1b19; min-height:100vh; padding:1.5rem 1rem 3rem;
     -webkit-text-size-adjust:100%; }
   .container { max-width:480px; margin:0 auto; }
-  h1 { font-family:'DM Serif Display',serif; font-size:2rem; font-weight:400; margin-bottom:0.1rem; letter-spacing:-0.01em; }
+  h1 { font-family:ui-serif,'New York',Georgia,serif; font-size:2rem; font-weight:400; margin-bottom:0.1rem; letter-spacing:-0.01em; }
   .subtitle { color:#8b857b; font-size:0.92rem; margin-bottom:1.15rem; line-height:1.45; }
   .card { background:#fff; border:1px solid #e8e3da; border-radius:14px; padding:1rem 1.1rem; margin-bottom:0.7rem;
     box-shadow:0 1px 2px rgba(28,27,25,0.03); }
@@ -26,7 +25,7 @@
   .period-row .nav svg { width:0.6rem; height:0.95rem; fill:none; stroke:currentColor; stroke-width:1.8;
     stroke-linecap:round; stroke-linejoin:round; }
   .period-row .nav:active { background:#eef6f1; color:#24603f; }
-  .period-label { flex:1; text-align:center; font-family:'DM Serif Display',serif; font-size:1.32rem; font-weight:400;
+  .period-label { flex:1; text-align:center; font-family:ui-serif,'New York',Georgia,serif; font-size:1.32rem; font-weight:400;
     color:#24603f; line-height:1.2; }
   .period-sub { text-align:center; font-size:0.8rem; color:#a09a90; margin-top:0.4rem; }
 
@@ -66,7 +65,7 @@
 
   /* 16px minimum on every control: readable, and it stops iOS zooming the page when she taps one */
   .day select, .day input { font-size:1rem; padding:0.6rem 0.4rem; border:1px solid transparent; border-radius:10px;
-    background-color:#f4f2ec; font-family:'Inter',sans-serif; text-align:center; outline:none;
+    background-color:#f4f2ec; font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif; text-align:center; outline:none;
     -webkit-appearance:none; color:#2a2823; transition:background-color 0.12s, border-color 0.12s; }
   .day input::placeholder { color:#c2bcb2; }
   .day input:focus, .day select:focus { border-color:#8fcbaa; background-color:#fff; }
@@ -81,22 +80,22 @@
   .period-total { background:#24603f; border:1px solid #24603f; border-radius:14px; padding:1rem 1.1rem;
                   margin:0.2rem 0 1rem; display:flex; justify-content:space-between; align-items:baseline;
                   font-size:0.95rem; color:#bcd8c8; }
-  .period-total .big { font-family:'DM Serif Display',serif; font-size:1.6rem; color:#fff; }
+  .period-total .big { font-family:ui-serif,'New York',Georgia,serif; font-size:1.6rem; color:#fff; }
 
   .field label { display:block; font-size:0.88rem; color:#8b857b; margin-bottom:0.45rem; line-height:1.4; }
   .field input { width:100%; padding:0.7rem 0.75rem; font-size:1.05rem; border:1px solid transparent; border-radius:10px;
-    background:#f4f2ec; outline:none; font-family:'Inter',sans-serif; color:#2a2823; }
+    background:#f4f2ec; outline:none; font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif; color:#2a2823; }
   .field input::placeholder { color:#c2bcb2; }
   .field input:focus { border-color:#8fcbaa; background:#fff; }
 
   .btn-send { width:100%; margin-top:0.5rem; padding:1.05rem; background:#1c1b19; color:#fff; border:none; border-radius:12px;
-    font-size:1.05rem; font-family:'Inter',sans-serif; font-weight:600; letter-spacing:0.01em; cursor:pointer; }
+    font-size:1.05rem; font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif; font-weight:600; letter-spacing:0.01em; cursor:pointer; }
   .btn-send:active { background:#403d38; }
-  .btn-action { flex:1; padding:0.8rem; border-radius:10px; font-size:0.9rem; font-family:'Inter',sans-serif; font-weight:600; cursor:pointer; border:1px solid transparent; text-align:center; }
+  .btn-action { flex:1; padding:0.8rem; border-radius:10px; font-size:0.9rem; font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif; font-weight:600; cursor:pointer; border:1px solid transparent; text-align:center; }
   .btn-copy { background:#1c1b19; color:#fff; }
   .btn-copy.copied { background:#24603f; }
   .btn-text { background:#eef6f1; color:#24603f; border-color:#cfe5d9; }
-  .btn-small { padding:0.55rem 0.9rem; border-radius:8px; font-size:0.85rem; font-family:'Inter',sans-serif; font-weight:600; cursor:pointer; border:1px solid #e8e3da; background:#f4f2ec; color:#5c5750; }
+  .btn-small { padding:0.55rem 0.9rem; border-radius:8px; font-size:0.85rem; font-family:-apple-system,BlinkMacSystemFont,system-ui,sans-serif; font-weight:600; cursor:pointer; border:1px solid #e8e3da; background:#f4f2ec; color:#5c5750; }
   .result-box { margin-top:1rem; background:#fff; border:1px solid #24603f; border-radius:14px; padding:1.1rem;
     box-shadow:0 1px 2px rgba(28,27,25,0.03); }
   .result-box .section-label { color:#24603f; }
@@ -188,7 +187,7 @@ const ANCHOR_END = '2026-09-04';   // a known period end (Friday); every period 
 const PERIOD_DAYS = 14;
 const DEFAULT_START = '09:00', DEFAULT_END = '17:00';
 const TOBY_SMS = '';               // deliberately blank: this page is public, so no number goes in it. The phone asks who to send to.
-const VERSION = '2026-10-17';  // bump when the page changes, so Toby can ask which one she's on
+const VERSION = '2026-10-18';  // bump when the page changes, so Toby can ask which one she's on
 const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const TYPES = [['worked','Worked'],['off','Off'],['sick','Sick'],['vacation','Vacation'],['stat','Stat holiday']];
