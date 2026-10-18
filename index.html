@@ -187,7 +187,7 @@ const ANCHOR_END = '2026-09-04';   // a known period end (Friday); every period 
 const PERIOD_DAYS = 14;
 const DEFAULT_START = '09:00', DEFAULT_END = '17:00';
 const TOBY_SMS = '';               // deliberately blank: this page is public, so no number goes in it. The phone asks who to send to.
-const VERSION = '2026-10-18';  // bump when the page changes, so Toby can ask which one she's on
+const VERSION = '2026-10-18b';  // bump when the page changes, so Toby can ask which one she's on
 const DOW = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
 const MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 const TYPES = [['worked','Worked'],['off','Off'],['sick','Sick'],['vacation','Vacation'],['stat','Stat holiday']];
@@ -301,25 +301,49 @@ function render(){
 
 // Totals are a plain sum of what she entered. The flags say overtime *will apply* — they never work out
 // how much, or at what rate; that stays in the payroll calculator so there is only one set of pay rules.
+//
+// The 40-hour flag counts the way BC law and the calculator do: overtime weeks run SUNDAY–SATURDAY
+// (ESA s.1, whatever the pay period), and only the first 8 hours of a day count toward 40 — hours past
+// 8 are already flagged as daily overtime. The period's first Saturday ends the week that began the
+// Sunday before the period, so the previous period's Sun–Fri is read from this phone if it is saved.
+function priorSunFri(){
+  const prevEnd=iso(addDays(parseISO(currentEnd), -PERIOD_DAYS));
+  let s=null; try{ s=JSON.parse(LS('ts_state_'+prevEnd)||'null'); }catch(e){}
+  if(!s || !Array.isArray(s.days) || s.days.length!==14) return 0;
+  return s.days.slice(8,14).reduce((t,d)=>t+Math.min(OT_DAY, dayHours(d)), 0);
+}
+function weekCrossings(){
+  let cum=priorSunFri(); const out={};
+  days.forEach((d,i)=>{
+    if(parseISO(d.date).getDay()===0) cum=0;                // every Sunday starts a new overtime week
+    const b=Math.min(OT_DAY, dayHours(d));
+    if(cum<=OT_WEEK && cum+b>OT_WEEK) out[i]=true;
+    cum+=b;
+  });
+  return out;
+}
 function updateTotals(){
-  let period=0;
+  let period=0; const cross=weekCrossings();
   [1,2].forEach(wk=>{
     const slice=days.slice((wk-1)*7, wk*7);
-    let hrs=0;
+    let hrs=0, crossLabel='';
     slice.forEach((d,j)=>{
       const i=(wk-1)*7+j, h=dayHours(d);
       hrs+=h;
+      if(cross[i]){ const dt=parseISO(d.date); crossLabel=`${DOW[dt.getDay()]} ${MON[dt.getMonth()]} ${dt.getDate()}`; }
       const row=document.getElementById('day'+i);
       if(row){
-        const old=row.querySelector('.day-flag'); if(old) old.remove();
+        row.querySelectorAll('.day-flag').forEach(x=>x.remove());
         if(h>OT_DAY) row.insertAdjacentHTML('beforeend',
           `<div class="day-flag">${H(h)} hours — over ${OT_DAY}, so overtime will apply</div>`);
+        if(cross[i]) row.insertAdjacentHTML('beforeend',
+          `<div class="day-flag">Over ${OT_WEEK} hours since Sunday — overtime will apply</div>`);
       }
     });
     period+=hrs;
     document.getElementById('wk'+wk+'h').textContent=H(hrs);
     document.getElementById('wk'+wk+'flag').textContent =
-      hrs>OT_WEEK ? `Over ${OT_WEEK} hours this week — overtime will apply` : '';
+      crossLabel ? `Over ${OT_WEEK} hours Sun–Sat (${crossLabel}) — overtime will apply` : '';
   });
   document.getElementById('periodH').textContent=H(period);
 }
